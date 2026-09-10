@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MKM للأثاث والتصميم | كنب وأنتريهات وركنات ومستلزمات المنزل</title>
+<meta name="description" content="معرض MKM للأثاث والتصميم: كنب، أنتريهات، ركنات، غرف نوم وكل مستلزمات المنزل. تصفح المنتجات واحجز خدمتك عبر واتساب من أقرب فرع.">
+<meta property="og:title" content="MKM للأثاث والتصميم">
+<meta property="og:description" content="كنب، أنتريهات، ركنات وكل مستلزمات المنزل — أربعة فروع وخدمة تواصل مباشر عبر واتساب.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="assets/logo.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="header" id="site-header"></header>
+
+<section class="hero">
+  <div class="container">
+    <img class="logo-big" src="assets/logo.jpg" alt="شعار معرض MKM للأثاث والتصميم">
+    <p class="kicker">FURNITURE &amp; DESIGN</p>
+    <h1>معرض MKM للأثاث والتصميم</h1>
+    <p class="lead">
+      كنب، أنتريهات، ركنات، غرف نوم، طاولات وكل مستلزمات المنزل — بخامات مختارة وتنفيذ بمقاسات مساحتك.
+      نصمّم لك قطعة تريّح العين وتدوم، ونساعدك في اختيار الأقمشة والألوان اللي تناسب بيتك.
+      السعر يُحدَّد من المعرض مباشرة عند التواصل حسب المقاس والخامة.
+    </p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="products.html">تصفح المنتجات</a>
+      <a class="btn btn-wa" id="hero-wa" target="_blank" rel="noopener">تواصل واتساب</a>
+      <a class="btn btn-outline" href="booking.html">حجز خدمة / استفسار</a>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <h2>أقسام المعرض</h2>
+      <p>كل ما يخص المجلس والصالة وغرف النوم في مكان واحد</p>
+      <div class="divider"></div>
+    </div>
+    <div class="grid grid-3" id="cats"></div>
+  </div>
+</section>
+
+<section class="section" style="background:var(--sand)">
+  <div class="container">
+    <div class="section-head">
+      <h2>أحدث المنتجات</h2>
+      <p>اضغط على أي منتج لعرض تفاصيله وصوره</p>
+      <div class="divider"></div>
+    </div>
+    <div class="grid grid-4" id="latest"><div class="state">جارِ التحميل…</div></div>
+    <div style="text-align:center;margin-top:30px"><a class="btn btn-beige" href="products.html">عرض كل المنتجات</a></div>
+  </div>
+</section>
+
+<section class="section" id="branches">
+  <div class="container">
+    <div class="section-head">
+      <h2>فروع المعرض</h2>
+      <p>أربعة فروع لخدمتك — اختر الأقرب لك</p>
+      <div class="divider"></div>
+    </div>
+    <div class="grid grid-3" id="branches-grid"></div>
+  </div>
+</section>
+
+<footer class="footer" id="site-footer"></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="js/config.js"></script>
+<script src="js/app.js"></script>
+<script>
+renderChrome("home");
+document.getElementById("hero-wa").href = waLink("السلام عليكم، عايز أستفسر عن منتجات معرض MKM");
+
+document.getElementById("cats").innerHTML = CATEGORIES.map(c => `
+  <a class="cat" href="products.html?cat=${c.key}">
+    <div class="ico">${c.icon}</div>
+    <h3>${c.label}</h3>
+    <p>تشكيلات متنوعة بمقاسات وخامات مختلفة</p>
+  </a>`).join("");
+
+document.getElementById("branches-grid").innerHTML = BRANCHES.map(b => `
+  <div class="branch">
+    <h3>${esc(b.name)}</h3>
+    <div class="row"><span>📍</span><span>${esc(b.address)}</span></div>
+    <div class="row"><span>📞</span><span>${esc(b.phone)}</span></div>
+    <div class="row"><span>🕒</span><span>${esc(b.hours)}</span></div>
+    <div class="actions">
+      <a class="btn btn-outline" href="${esc(b.map)}" target="_blank" rel="noopener">الموقع على الخريطة</a>
+      <a class="btn btn-wa" href="${waLink('السلام عليكم، عايز أستفسر عن ' + b.name)}" target="_blank" rel="noopener">واتساب الفرع</a>
+    </div>
+  </div>`).join("");
+
+(async () => {
+  const box = document.getElementById("latest");
+  const { data, error } = await fetchProducts("all");
+  if (error) { box.innerHTML = `<div class="state">${esc(error)}</div>`; return; }
+  if (!data || !data.length) { box.innerHTML = `<div class="state">لا توجد منتجات مضافة بعد — أضفها من لوحة التحكم.</div>`; return; }
+  box.innerHTML = data.slice(0, 8).map(productCard).join("");
+})();
+</script>
+</body>
+</html>

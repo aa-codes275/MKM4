@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>لوحة التحكم | MKM للأثاث والتصميم</title>
+<meta name="description" content="لوحة تحكم معرض MKM لإضافة وتعديل وحذف المنتجات المرتبطة بقاعدة البيانات.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="assets/logo.jpg">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="header" id="site-header"></header>
+
+<section class="section">
+  <div class="container">
+
+    <div id="gate">
+      <div class="form" style="max-width:420px;margin:0 auto">
+        <h2 style="font-weight:800;margin-bottom:6px">لوحة التحكم</h2>
+        <p style="color:var(--gray);font-size:.9rem;margin-bottom:18px">أدخل كلمة المرور للدخول</p>
+        <div class="field"><label for="pass">كلمة المرور</label><input id="pass" type="password"></div>
+        <button class="btn btn-primary" id="enter" style="width:100%">دخول</button>
+      </div>
+    </div>
+
+    <div id="panel" style="display:none">
+      <div class="section-head" style="text-align:right">
+        <h2>إدارة المنتجات</h2>
+        <p>البيانات تُحفظ في قاعدة بيانات Supabase وتظهر فورًا في الموقع</p>
+      </div>
+      <div id="msg"></div>
+
+      <div class="p-wrap">
+        <form class="form" id="pform">
+          <h3 style="font-weight:800;margin-bottom:16px" id="ftitle">إضافة منتج جديد</h3>
+          <input type="hidden" id="pid">
+          <div class="field"><label for="name">اسم المنتج *</label><input id="name" required></div>
+          <div class="two">
+            <div class="field"><label for="category">القسم *</label><select id="category"></select></div>
+            <div class="field"><label for="is_active">الحالة</label>
+              <select id="is_active"><option value="true">ظاهر في الموقع</option><option value="false">مخفي</option></select>
+            </div>
+          </div>
+          <div class="field">
+            <label for="images">روابط الصور (رابط في كل سطر) *</label>
+            <textarea id="images" placeholder="https://...jpg&#10;https://...jpg"></textarea>
+            <p class="hint">ارفع الصور في Storage داخل Supabase وانسخ الرابط العام لكل صورة هنا.</p>
+          </div>
+          <div class="field"><label for="description">الوصف</label><textarea id="description"></textarea></div>
+          <div class="two">
+            <div class="field"><label for="material">الخامة</label><input id="material" placeholder="قطيفة / جلد طبيعي"></div>
+            <div class="field"><label for="color">اللون</label><input id="color" placeholder="بيج / رمادي"></div>
+          </div>
+          <div class="two">
+            <div class="field"><label for="dimensions">المقاس</label><input id="dimensions" placeholder="320 × 220 سم"></div>
+            <div class="field"><label for="pieces">عدد القطع</label><input id="pieces" placeholder="5 قطع"></div>
+          </div>
+          <div class="field"><label for="lead_time">مدة التنفيذ</label><input id="lead_time" placeholder="من 10 إلى 15 يوم"></div>
+          <button class="btn btn-primary" type="submit" style="width:100%">حفظ المنتج</button>
+          <button class="btn btn-outline" type="button" id="reset" style="width:100%;margin-top:10px">إلغاء / منتج جديد</button>
+        </form>
+
+        <div>
+          <div class="form">
+            <h3 style="font-weight:800;margin-bottom:14px">المنتجات المسجلة (<span id="count">0</span>)</h3>
+            <div id="rows"><div class="state">جارِ التحميل…</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<footer class="footer" id="site-footer"></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="js/config.js"></script>
+<script src="js/app.js"></script>
+<script>
+renderChrome("admin");
+
+/* ---- بوابة الدخول ---- */
+function unlock() { $("#gate").style.display = "none"; $("#panel").style.display = "block"; loadRows(); }
+if (sessionStorage.getItem("mkm_admin") === "1") unlock();
+$("#enter").addEventListener("click", () => {
+  if ($("#pass").value === ADMIN_PASSCODE) { sessionStorage.setItem("mkm_admin", "1"); unlock(); }
+  else alert("كلمة المرور غير صحيحة");
+});
+
+$("#category").innerHTML = CATEGORIES.map(c => `<option value="${c.key}">${c.label}</option>`).join("");
+
+function note(text, ok) {
+  $("#msg").innerHTML = `<div class="msg ${ok ? "ok" : "err"}">${esc(text)}</div>`;
+  if (ok) setTimeout(() => { $("#msg").innerHTML = ""; }, 4000);
+}
+
+/* ---- قراءة كل المنتجات (بما فيها المخفية) ---- */
+async function loadRows() {
+  const box = $("#rows");
+  if (!sbReady()) { box.innerHTML = `<div class="state">أضف بيانات Supabase في js/config.js أولًا.</div>`; return; }
+  const { data, error } = await sb.from("products").select("*").order("created_at", { ascending: false });
+  if (error) { box.innerHTML = `<div class="state">${esc(error.message)}</div>`; return; }
+  $("#count").textContent = data.length;
+  if (!data.length) { box.innerHTML = `<div class="state">لا توجد منتجات بعد.</div>`; return; }
+  box.innerHTML = `<table class="admin-table"><thead><tr><th>صورة</th><th>الاسم</th><th>القسم</th><th>الحالة</th><th></th></tr></thead><tbody>
+    ${data.map(p => `<tr>
+      <td><img src="${esc(firstImage(p))}" alt="${esc(p.name)}" onerror="this.src='${PLACEHOLDER}'"></td>
+      <td>${esc(p.name)}</td>
+      <td>${esc(catLabel(p.category))}</td>
+      <td><span class="badge">${p.is_active ? "ظاهر" : "مخفي"}</span></td>
+      <td>
+        <button class="chip" data-edit="${esc(p.id)}">تعديل</button>
+        <button class="chip" data-del="${esc(p.id)}">حذف</button>
+      </td></tr>`).join("")}
+    </tbody></table>`;
+
+  $$("#rows [data-edit]").forEach(b => b.addEventListener("click", () => fill(data.find(p => String(p.id) === b.dataset.edit))));
+  $$("#rows [data-del]").forEach(b => b.addEventListener("click", () => del(b.dataset.del)));
+}
+
+function fill(p) {
+  if (!p) return;
+  $("#ftitle").textContent = "تعديل منتج";
+  $("#pid").value = p.id;
+  $("#name").value = p.name || "";
+  $("#category").value = p.category || CATEGORIES[0].key;
+  $("#is_active").value = String(!!p.is_active);
+  $("#images").value = allImages(p).filter(u => u !== PLACEHOLDER).join("\n");
+  ["description", "material", "color", "dimensions", "pieces", "lead_time"].forEach(k => { $("#" + k).value = p[k] || ""; });
+  window.scrollTo({ top: 0 });
+}
+
+$("#reset").addEventListener("click", () => {
+  $("#pform").reset(); $("#pid").value = ""; $("#ftitle").textContent = "إضافة منتج جديد";
+});
+
+$("#pform").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (!sbReady()) return note("أضف بيانات Supabase في js/config.js أولًا.", false);
+  const imgs = $("#images").value.split("\n").map(s => s.trim()).filter(Boolean);
+  const row = {
+    name: $("#name").value.trim(),
+    category: $("#category").value,
+    is_active: $("#is_active").value === "true",
+    images: imgs,
+    image_url: imgs[0] || null,
+    description: $("#description").value.trim() || null,
+    material: $("#material").value.trim() || null,
+    color: $("#color").value.trim() || null,
+    dimensions: $("#dimensions").value.trim() || null,
+    pieces: $("#pieces").value.trim() || null,
+    lead_time: $("#lead_time").value.trim() || null,
+  };
+  const id = $("#pid").value;
+  const { error } = id
+    ? await sb.from("products").update(row).eq("id", id)
+    : await sb.from("products").insert(row);
+  if (error) return note("خطأ: " + error.message, false);
+  note(id ? "تم تحديث المنتج بنجاح." : "تمت إضافة المنتج بنجاح.", true);
+  $("#reset").click();
+  loadRows();
+});
+
+async function del(id) {
+  if (!confirm("تأكيد حذف المنتج؟")) return;
+  const { error } = await sb.from("products").delete().eq("id", id);
+  if (error) return note("خطأ: " + error.message, false);
+  note("تم حذف المنتج.", true);
+  loadRows();
+}
+</script>
+</body>
+</html>

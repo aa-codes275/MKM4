@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>تفاصيل المنتج | MKM للأثاث والتصميم</title>
+<meta name="description" content="صور وتفاصيل المنتج من معرض MKM للأثاث والتصميم، والسعر يُحدَّد من المعرض عند التواصل عبر واتساب.">
+<meta property="og:title" content="تفاصيل المنتج | MKM للأثاث والتصميم">
+<meta property="og:description" content="صور المنتج ومقاساته وخاماته، وتواصل مباشر مع المعرض لتحديد السعر.">
+<meta property="og:type" content="product">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="assets/logo.jpg">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="header" id="site-header"></header>
+
+<section class="section" style="padding-bottom:40px">
+  <div class="container" id="detail"><div class="state">جارِ التحميل…</div></div>
+</section>
+
+<section class="rail-wrap">
+  <div class="container">
+    <div class="rail-head">
+      <h3>منتجات أخرى</h3>
+      <div class="rail-nav">
+        <button id="rail-prev" aria-label="السابق">‹</button>
+        <button id="rail-next" aria-label="التالي">›</button>
+      </div>
+    </div>
+    <div class="rail" id="rail"></div>
+  </div>
+</section>
+
+<footer class="footer" id="site-footer"></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="js/config.js"></script>
+<script src="js/app.js"></script>
+<script>
+renderChrome("products");
+const id = new URLSearchParams(location.search).get("id");
+
+function specRow(label, value) {
+  return value ? `<div class="spec"><span>${esc(label)}</span><span>${esc(value)}</span></div>` : "";
+}
+
+async function loadDetail() {
+  const box = document.getElementById("detail");
+  if (!id) { box.innerHTML = `<div class="state">لم يتم تحديد منتج. <a href="products.html">عودة للمنتجات</a></div>`; return; }
+  const { data: p, error } = await fetchProduct(id);
+  if (error) { box.innerHTML = `<div class="state">${esc(error)}</div>`; return; }
+  if (!p) { box.innerHTML = `<div class="state">المنتج غير موجود. <a href="products.html">عودة للمنتجات</a></div>`; return; }
+
+  document.title = p.name + " | MKM للأثاث والتصميم";
+  const imgs = allImages(p);
+  const msg = `السلام عليكم، مهتم بالمنتج: ${p.name} (كود: ${p.id})\nمن معرض MKM — عايز أعرف السعر والتفاصيل.`;
+
+  box.innerHTML = `
+    <div class="p-wrap">
+      <div>
+        <img class="p-main" id="p-main" src="${esc(imgs[0])}" alt="${esc(p.name)}" onerror="this.src='${PLACEHOLDER}'">
+        ${imgs.length > 1 ? `<div class="p-gallery" id="p-gallery">${imgs.map((s,i)=>`<img src="${esc(s)}" data-s="${esc(s)}" class="${i===0?'sel':''}" alt="${esc(p.name)} صورة ${i+1}">`).join("")}</div>` : ""}
+      </div>
+      <div class="p-info">
+        <span class="tag">${esc(catLabel(p.category))}</span>
+        <h1>${esc(p.name)}</h1>
+        <p class="desc">${esc(p.description || "")}</p>
+        <div style="margin-top:20px">
+          ${specRow("الخامة", p.material)}
+          ${specRow("المقاس", p.dimensions)}
+          ${specRow("اللون", p.color)}
+          ${specRow("عدد القطع", p.pieces)}
+          ${specRow("مدة التنفيذ", p.lead_time)}
+        </div>
+        <div class="price-box">
+          <strong>السعر يُحدَّد من المعرض</strong>
+          <p>لا نعرض الأسعار على الموقع — تواصل معنا على واتساب وسنحدد السعر النهائي حسب المقاس والخامة والفرع.</p>
+        </div>
+        <div class="hero-actions" style="justify-content:flex-start;margin-top:20px">
+          <a class="btn btn-wa" href="${waLink(msg)}" target="_blank" rel="noopener">اسأل عن هذا المنتج على واتساب</a>
+          <a class="btn btn-outline" href="booking.html?product=${encodeURIComponent(p.name)}">حجز خدمة لهذا المنتج</a>
+        </div>
+      </div>
+    </div>`;
+
+  const gal = document.getElementById("p-gallery");
+  if (gal) gal.addEventListener("click", e => {
+    if (e.target.tagName !== "IMG") return;
+    document.getElementById("p-main").src = e.target.dataset.s;
+    $$("#p-gallery img").forEach(i => i.classList.remove("sel"));
+    e.target.classList.add("sel");
+  });
+}
+
+async function loadRail() {
+  const rail = document.getElementById("rail");
+  const { data } = await fetchProducts("all");
+  if (!data || !data.length) { rail.innerHTML = `<div class="state">لا توجد منتجات أخرى.</div>`; return; }
+  rail.innerHTML = data.filter(p => String(p.id) !== String(id)).map(railItem).join("")
+    || `<div class="state">لا توجد منتجات أخرى.</div>`;
+}
+
+document.getElementById("rail-prev").addEventListener("click", () =>
+  document.getElementById("rail").scrollBy({ left: -460 }));
+document.getElementById("rail-next").addEventListener("click", () =>
+  document.getElementById("rail").scrollBy({ left: 460 }));
+
+loadDetail();
+loadRail();
+</script>
+</body>
+</html>

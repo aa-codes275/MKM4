@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>حجز خدمة والتواصل | MKM للأثاث والتصميم</title>
+<meta name="description" content="احجز خدمة تفصيل كنب أو ركنة أو أنتريه من معرض MKM، أو اسأل عن أي طلب خاص — البيانات تُرسل مباشرة على واتساب.">
+<meta property="og:title" content="حجز خدمة والتواصل | MKM للأثاث والتصميم">
+<meta property="og:description" content="اكتب تفاصيل طلبك وأرسلها مباشرة على واتساب معرض MKM.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="assets/logo.jpg">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="header" id="site-header"></header>
+
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <h2>حجز خدمة أو استفسار خاص</h2>
+      <p>اكتب التفاصيل بالكامل وأرسلها لنا على واتساب في ضغطة واحدة</p>
+      <div class="divider"></div>
+    </div>
+
+    <div class="p-wrap">
+      <form class="form" id="form">
+        <div class="two">
+          <div class="field"><label for="name">الاسم</label><input id="name" required placeholder="اكتب اسمك"></div>
+          <div class="field"><label for="phone">رقم الجوال</label><input id="phone" required placeholder="05xxxxxxxx"></div>
+        </div>
+        <div class="two">
+          <div class="field">
+            <label for="service">نوع الخدمة</label>
+            <select id="service">
+              <option>طلب / شراء منتج</option>
+              <option>تفصيل كنب أو ركنة بمقاس</option>
+              <option>تنجيد وتجديد أثاث</option>
+              <option>استشارة تصميم وديكور</option>
+              <option>زيارة معاينة في المنزل</option>
+              <option>استفسار خاص</option>
+            </select>
+          </div>
+          <div class="field"><label for="branch">الفرع الأقرب</label><select id="branch"></select></div>
+        </div>
+        <div class="two">
+          <div class="field"><label for="cat">القسم</label><select id="cat"></select></div>
+          <div class="field"><label for="date">التاريخ المفضل للزيارة</label><input id="date" type="date"></div>
+        </div>
+        <div class="field"><label for="product">المنتج المطلوب (اختياري)</label><input id="product" placeholder="اسم المنتج أو الكود"></div>
+        <div class="field">
+          <label for="details">تفاصيل الطلب</label>
+          <textarea id="details" placeholder="المقاس المطلوب، الخامة، اللون، عدد القطع، أي ملاحظات..."></textarea>
+          <p class="hint">كل ما زادت التفاصيل، كان الرد أدق وأسرع.</p>
+        </div>
+        <button class="btn btn-wa" type="submit" style="width:100%">إرسال الطلب على واتساب</button>
+        <p class="hint" style="text-align:center;margin-top:12px">لا نطلب أي دفع عبر الموقع — السعر يُحدَّد من المعرض عند التواصل.</p>
+      </form>
+
+      <div>
+        <div class="form">
+          <h3 style="font-weight:800;margin-bottom:12px">تواصل مباشر</h3>
+          <div class="spec"><span>واتساب</span><span id="wa-num"></span></div>
+          <div class="spec"><span>البريد</span><span id="mail"></span></div>
+          <div class="spec"><span>مواعيد العمل</span><span id="hrs"></span></div>
+          <a class="btn btn-wa" id="direct-wa" target="_blank" rel="noopener" style="width:100%;margin-top:18px">محادثة واتساب فورية</a>
+          <a class="btn btn-outline" href="connect.html" style="width:100%;margin-top:10px">QR والسوشيال ميديا</a>
+        </div>
+        <div class="form" style="margin-top:20px">
+          <h3 style="font-weight:800;margin-bottom:12px">فروعنا</h3>
+          <div id="mini-branches"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer" id="site-footer"></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="js/config.js"></script>
+<script src="js/app.js"></script>
+<script>
+renderChrome("booking");
+$("#wa-num").textContent = SITE.whatsappDisplay;
+$("#mail").textContent = SITE.email;
+$("#hrs").textContent = SITE.hours;
+$("#direct-wa").href = waLink("السلام عليكم، عايز أتواصل مع معرض MKM");
+$("#branch").innerHTML = BRANCHES.map(b => `<option>${esc(b.name)}</option>`).join("");
+$("#cat").innerHTML = CATEGORIES.map(c => `<option value="${c.key}">${c.label}</option>`).join("");
+$("#mini-branches").innerHTML = BRANCHES.map(b =>
+  `<div class="spec"><span>${esc(b.name)}</span><span>${esc(b.phone)}</span></div>`).join("");
+
+const pre = new URLSearchParams(location.search).get("product");
+if (pre) $("#product").value = pre;
+
+$("#form").addEventListener("submit", e => {
+  e.preventDefault();
+  const catLbl = $("#cat").options[$("#cat").selectedIndex].text;
+  const lines = [
+    "طلب جديد من موقع MKM",
+    "الاسم: " + $("#name").value,
+    "الجوال: " + $("#phone").value,
+    "نوع الخدمة: " + $("#service").value,
+    "الفرع: " + $("#branch").value,
+    "القسم: " + catLbl,
+    $("#date").value ? "التاريخ المفضل: " + $("#date").value : "",
+    $("#product").value ? "المنتج: " + $("#product").value : "",
+    $("#details").value ? "التفاصيل: " + $("#details").value : "",
+  ].filter(Boolean);
+  window.open(waLink(lines.join("\n")), "_blank");
+});
+</script>
+</body>
+</html>

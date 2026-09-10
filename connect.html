@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>باركود واتساب والسوشيال ميديا | MKM للأثاث والتصميم</title>
+<meta name="description" content="امسح باركود QR للتواصل الفوري مع معرض MKM على واتساب، وتابع حساباتنا على إنستجرام وفيسبوك.">
+<meta property="og:title" content="باركود واتساب والسوشيال ميديا | MKM">
+<meta property="og:description" content="مسح سريع للـ QR يفتح محادثة واتساب مع معرض MKM، مع كل حسابات السوشيال ميديا.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="assets/logo.jpg">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="header" id="site-header"></header>
+
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <h2>امسح الباركود وتواصل معنا</h2>
+      <p>وجّه كاميرا الجوال على الباركود لتفتح محادثة واتساب مباشرة</p>
+      <div class="divider"></div>
+    </div>
+
+    <div class="qr-card">
+      <img id="qr" alt="باركود QR لمحادثة واتساب مع معرض MKM">
+      <strong style="display:block;font-size:1.05rem">واتساب معرض MKM</strong>
+      <p style="color:var(--gray);font-size:.9rem;margin-top:4px" id="wa-line"></p>
+      <a class="btn btn-wa" id="wa-btn" target="_blank" rel="noopener" style="width:100%;margin-top:18px">فتح واتساب الآن</a>
+      <a class="btn btn-outline" id="qr-dl" download="mkm-whatsapp-qr.png" style="width:100%;margin-top:10px">تحميل صورة الباركود</a>
+    </div>
+
+    <div class="section-head" style="margin-top:60px">
+      <h2>السوشيال ميديا</h2>
+      <p>تابع أحدث التشكيلات والعروض</p>
+      <div class="divider"></div>
+    </div>
+    <div class="social-grid" id="social"></div>
+  </div>
+</section>
+
+<footer class="footer" id="site-footer"></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="js/config.js"></script>
+<script src="js/app.js"></script>
+<script>
+renderChrome("connect");
+const link = waLink("السلام عليكم، وصلتكم من باركود موقع MKM وعايز أستفسر عن المنتجات");
+const qrSrc = "https://api.qrserver.com/v1/create-qr-code/?size=460x460&margin=0&data=" + encodeURIComponent(link);
+$("#qr").src = qrSrc;
+$("#qr-dl").href = qrSrc;
+$("#wa-btn").href = link;
+$("#wa-line").textContent = SITE.whatsappDisplay;
+
+const socials = [
+  { t: "إنستجرام", s: "@mkm.furniture2", u: SITE.instagram, i: "📸" },
+  { t: "فيسبوك", s: "صفحة المعرض الرسمية", u: SITE.facebook, i: "📘" },
+  { t: "واتساب", s: SITE.whatsappDisplay, u: link, i: "✆" },
+  { t: "البريد الإلكتروني", s: SITE.email, u: "mailto:" + SITE.email, i: "✉️" },
+  SITE.tiktok ? { t: "تيك توك", s: "حساب المعرض", u: SITE.tiktok, i: "🎵" } : null,
+  SITE.snapchat ? { t: "سناب شات", s: "حساب المعرض", u: SITE.snapchat, i: "👻" } : null,
+].filter(Boolean).filter(x => x.u);
+
+$("#social").innerHTML = socials.map(x => `
+  <a class="social" href="${esc(x.u)}" target="_blank" rel="noopener">
+    <span class="ico">${x.i}</span>
+    <span><strong>${esc(x.t)}</strong><span>${esc(x.s)}</span></span>
+  </a>`).join("");
+</script>
+</body>
+</html>
