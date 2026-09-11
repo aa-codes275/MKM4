@@ -55,7 +55,7 @@ function renderChrome(active) {
     header.innerHTML = `
       <div class="container nav">
         <a class="brand" href="index.html">
-          <img src="assets/logo.jpg" alt="شعار معرض MKM للأثاث والتصميم">
+          <img src="assets/5843617368209298030_121.jpg" alt="شعار معرض MKM للأثاث والتصميم">
           <span class="brand-txt"><strong>MKM</strong><span>FURNITURE &amp; DESIGN</span></span>
         </a>
         <button class="menu-btn" id="menu-btn" aria-label="القائمة">☰</button>
@@ -64,7 +64,7 @@ function renderChrome(active) {
           <a href="products.html" class="${active === 'products' ? 'active' : ''}">المنتجات</a>
           <a href="booking.html" class="${active === 'booking' ? 'active' : ''}">حجز خدمة</a>
           <a href="connect.html" class="${active === 'connect' ? 'active' : ''}">QR والسوشيال</a>
-          <a href="admin.html" class="${active === 'admin' ? 'active' : ''}">لوحة التحكم</a>
+          <a href="admin.html" class="${active === 'admin' ? 'active' : ''}"> </a>
         </nav>
       </div>`;
     $("#menu-btn").addEventListener("click", () => $("#nav-links").classList.toggle("open"));
